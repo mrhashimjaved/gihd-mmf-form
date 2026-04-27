@@ -883,6 +883,9 @@
     document.getElementById("studentCardCount").textContent = "";
     currentTotal = 0;
     document.getElementById("successScreen").classList.remove("show");
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = false;
+    btn.innerHTML = "Submit Student Record";
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
