@@ -561,8 +561,14 @@
             <option>Section H</option>
             <option>Section I</option>
             <option>Section J</option>
+            <option>Others</option>
           </select>
           <span class="error-msg" id="err-section">Please select a section</span>
+          <div id="otherSectionField" hidden>
+            <label for="otherSection">Specify section <span class="req">*</span></label>
+            <input type="text" id="otherSection" aria-describedby="err-other-section" disabled>
+            <span class="error-msg" id="err-other-section">Please specify a section</span>
+          </div>
         </div>
         <div class="field">
           <label>Select Your Name <span class="req">*</span></label>
@@ -757,6 +763,22 @@
     setTimeout(() => t.classList.remove("show"), 3500);
   }
 
+  function syncOtherSection() {
+    const isOther = document.getElementById("selectSection").value === "Others";
+    const input = document.getElementById("otherSection");
+    document.getElementById("otherSectionField").hidden = !isOther;
+    input.disabled = !isOther;
+    input.required = isOther;
+    if (!isOther) {
+      input.value = "";
+      input.classList.remove("error");
+      document.getElementById("err-other-section").classList.remove("show");
+    }
+  }
+
+  document.getElementById("selectSection").addEventListener("change", syncOtherSection);
+  syncOtherSection();
+
   function validateForm() {
     let valid = true;
 
@@ -768,6 +790,10 @@
       { id: "totalStudents",   err: "err-total"   },
       { id: "studentsPresent", err: "err-present" },
     ];
+
+    if (document.getElementById("selectSection").value === "Others") {
+      fields.push({ id: "otherSection", err: "err-other-section" });
+    }
 
     fields.forEach(({ id, err }) => {
       const el = document.getElementById(id);
@@ -817,7 +843,9 @@
     const payload = {
       selectSchool:    document.getElementById("selectSchool").value,
       selectClass:     document.getElementById("selectClass").value,
-      selectSection:   document.getElementById("selectSection").value,
+      selectSection:   document.getElementById("selectSection").value === "Others"
+        ? document.getElementById("otherSection").value.trim()
+        : document.getElementById("selectSection").value,
       enumeratorName:  document.getElementById("enumeratorName").value.trim(),
       totalStudents:   document.getElementById("totalStudents").value,
       studentsPresent: document.getElementById("studentsPresent").value,
@@ -884,6 +912,7 @@
 
   function resetForm() {
     document.getElementById("mainForm").reset();
+    syncOtherSection();
     document.getElementById("studentsContainer").innerHTML = "";
     document.getElementById("studentTableWrap").style.display = "none";
     document.getElementById("noTotalMsg").style.display = "block";
