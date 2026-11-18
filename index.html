@@ -613,12 +613,12 @@
       <div class="grid-2">
         <div class="field">
           <label>Total Students <span class="req">*</span></label>
-          <input type="number" id="totalStudents" placeholder="e.g. 35" min="1" max="40" required oninput="onTotalStudentsChange()">
-          <span class="error-msg" id="err-total">Please enter total students (1–40)</span>
+          <input type="number" id="totalStudents" placeholder="e.g. 35" min="1" max="80" required oninput="onTotalStudentsChange()">
+          <span class="error-msg" id="err-total">Please enter total students (1–80)</span>
         </div>
         <div class="field">
           <label>Students Present <span class="req">*</span></label>
-          <input type="number" id="studentsPresent" placeholder="e.g. 30" min="0" max="40" required>
+          <input type="number" id="studentsPresent" placeholder="e.g. 30" min="0" max="80" required>
           <span class="error-msg" id="err-present">Please enter students present</span>
         </div>
       </div>
@@ -682,7 +682,7 @@
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAeeKkWjHqKexEubdB-aCVU2JuhLpKc_1an-HB9o_JfEYGqJ8Am2HyGlkunr-AZxUXow/exec";
   // =============================================
 
-  const MAX_STUDENTS = 40;
+  const MAX_STUDENTS = 80;
   let currentTotal = 0;
 
   // Called whenever Total Students changes
@@ -852,6 +852,15 @@
     const payload = buildPayload();
 
     try {
+      // Older Apps Script deployments silently truncate the raw row at 40.
+      if (Number(payload.totalStudents) > 40) {
+        const capacity = await fetch(SCRIPT_URL, { cache: "no-store" })
+          .then(response => response.ok ? response.json() : null)
+          .catch(() => null);
+        if (capacity?.maxStudents !== MAX_STUDENTS) {
+          throw new Error("This form's server is not ready for more than 40 students. Your record has not been sent.");
+        }
+      }
       const res = await fetch(SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify(payload),
